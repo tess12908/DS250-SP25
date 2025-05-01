@@ -49,7 +49,11 @@ __Include the tables created from [PY4DS: CH2 Data Visualization](https://aeturr
 
 ```{python}
 # Include and execute your code here
-
+from palmerpenguins import load_penguins
+df = load_penguins()
+penguins = load_penguins()
+penguins
+#penguins.head()
 
 ```
 
@@ -57,7 +61,6 @@ _include figures in chunks and discuss your findings in the figure._
 
 ```{python}
 # Include and execute your code here
-
 
 ```
 
@@ -69,7 +72,57 @@ __Recreate the example charts from [PY4DS: CH2 Data Visualization](https://aetur
 
 ```{python}
 # Include and execute your code here
-
+!pip install plotnine 
+from plotnine import ggplot, aes, geom_point, geom_smooth, labs
+from palmerpenguins import load_penguins
+penguins = load_penguins() 
+ggplot(data = penguins) 
+ggplot(
+  data = penguins,
+  mapping = aes(x = "flipper_length_mm", y = "body_mass_g")
+)
+(
+    ggplot(data=penguins, mapping=aes(x="flipper_length_mm", y="body_mass_g"))
+    + geom_point()
+)
+(
+    ggplot(
+        data=penguins,
+        mapping=aes(x="flipper_length_mm", y="body_mass_g", color="species"),
+    )
+    + geom_point()
+)
+(
+    ggplot(
+        data=penguins,
+        mapping=aes(x="flipper_length_mm", y="body_mass_g", color="species"),
+    )
+    + geom_point()
+    + geom_smooth(method="lm")
+)
+(
+    ggplot(data=penguins, mapping=aes(x="flipper_length_mm", y="body_mass_g"))
+    + geom_point(mapping=aes(color="species"))
+    + geom_smooth(method="lm")
+)
+(
+    ggplot(data=penguins, mapping=aes(x="flipper_length_mm", y="body_mass_g"))
+    + geom_point(mapping=aes(color="species", shape="species"))
+    + geom_smooth(method="lm")
+)
+(
+    ggplot(data=penguins, mapping=aes(x="flipper_length_mm", y="body_mass_g"))
+    + geom_point(aes(color="species", shape="species"))
+    + geom_smooth(method="lm")
+    + labs(
+        title="Body mass and flipper length",
+        subtitle="Dimensions for Adelie, Chinstrap, and Gentoo Penguins",
+        x="Flipper length (mm)",
+        y="Body mass (g)",
+        color="Species",
+        shape="Species",
+    )
+)
 
 ```
 
