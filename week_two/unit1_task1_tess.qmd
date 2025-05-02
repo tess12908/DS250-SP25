@@ -55,6 +55,8 @@ df_felisha = df.query("name == 'Felisha'")
 felisha_early = df_felisha['year'].iloc[0]
 print(f"The earliest year ‘Felisha’ was used was in{felisha_early}")
 
+#df.query('name=="Felisha"').filter(["year"]).sort_values()
+
 ```
 
 
