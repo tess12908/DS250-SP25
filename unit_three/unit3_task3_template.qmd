@@ -1,0 +1,75 @@
+---
+title: "Client Report - If not now, when?"
+subtitle: "Unit 3 Task 3"
+author: "[STUDENT NAME]"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+---
+
+```{python}
+import pandas as pd 
+import numpy as np
+import sqlite3
+from lets_plot import *
+
+LetsPlot.setup_html(isolated_frame=True)
+```
+
+
+```{python}
+# Learn morea about Code Cells: https://quarto.org/docs/reference/cells/cells-jupyter.html
+
+# Include and execute your code here
+df = pd.read_json("https://github.com/byuidatascience/data4missing/raw/master/data-raw/flights_missing/flights_missing.json")
+```
+
+## QUESTION 1
+
+__What is the best month to fly if you want to avoid delays of any length?__ Describe the metric you chose and why you chose it to calculate your answer. Include one chart to help support your answer, with the x-axis ordered by month.
+
+_Describe your results and analysis here_
+
+```{python}
+
+df_flights = df.copy()
+
+df_flights = df_flights.replace({
+    999: np.nan,
+    '': np.nan,
+    'n/a': np.nan, 
+    'Febuary': 'February'
+})
+
+df_flights[['airport_code', 'airport_name', 'month', 'num_of_delays_total', 'minutes_delayed_total']]
+
+plot = ggplot(df_flights) + \
+    geom_bar(aes(x='month', y='num_of_delays_total', fill='airport_name'), 
+             stat='identity', position='dodge') + \
+    ggtitle('Delays by Month') + \
+    xlab('Month') + \
+    ylab('Number of Total Delays') + \
+    theme(axis_text_x=element_text(angle=45, hjust=1))
+
+display(plot)
+
+```
+

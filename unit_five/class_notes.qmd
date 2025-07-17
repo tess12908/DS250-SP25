@@ -1,0 +1,10 @@
+
+
+s = pd.Series(['1. Ant.  ', '2. Bee!\n', '3. Cat?\t', '4. Beat?\t', np.nan]) 
+
+* `.str.strip()`: removes trailing characters; default is trailing white space
+  * `.str.replace()`:  replaces specified patterns with given characters
+  * `.str.split()`: splits a string wherever the specified character appears; returns a tupple of length determined by the number of occurences
+  * `.str.join()`:  joins 2 strings into 1
+  * `.str.findall()`: identifies the string location of specified pattern
+  *  `str.extractall()`: extracts identified pattern from the strings when it occurs

@@ -1,0 +1,105 @@
+---
+title: "Client Report - What's in a Name?"
+subtitle: "Unit 1 Task 2"
+author: "[STUDENT NAME]"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+---
+
+```{python}
+import pandas as pd
+import numpy as np
+from lets_plot import *
+
+LetsPlot.setup_html(isolated_frame=True)
+```
+
+```{python}
+# Learn morea about Code Cells: https://quarto.org/docs/reference/cells/cells-jupyter.html
+
+# Include and execute your code here
+df = pd.read_csv("https://github.com/byuidatascience/data4names/raw/master/data-raw/names_year/names_year.csv")
+```
+
+## QUESTION 1
+
+<!-- Make sure at least one of your charts includes reference marks!! -->
+
+__How does your name at your birth year compare to its use historically? Your must provide a chart. The years labels on your charts should not include a comma.__ 
+
+_type your results and analysis here_
+
+```{python}
+# Q1
+# Filter for the name "Tess"
+tess_df = df[df['name'] == 'Tess']
+
+# Create the plot
+ax = tess_df.plot(x='year', y='Total', kind='line', label='Tess', color='green', linewidth=2, figsize=(10, 6))
+
+# Highlight 2003 with a red dot
+tess_2003 = tess_df[tess_df['year'] == 2003]
+ax.scatter(tess_2003['year'], tess_2003['Total'], color='red', label='Tess in 2003', zorder=10)
+
+# Title and labels
+ax.set_title("Popularity of the Name 'Tess' Over Time", fontsize=14)
+ax.set_xlabel("Year")
+ax.set_ylabel("Total")
+
+# Show legend
+ax.legend()
+
+```
+
+
+## QUESTION 2
+
+__If you talked to someone named Brittany on the phone, what is your guess of his or her age? What ages would you not guess? Try to justify your answer with whatever statistics knowledge you have. You must provide a chart. The years labels on your charts should not include a comma.__  
+
+_type your results and analysis here_
+
+```{python}
+# Q2
+
+brittany_df = df[df['name'] == 'Brittany']
+
+# Create the plot
+ax = brittany_df.plot(x='year', y='Total', kind='line', label='Brittany', color='blue', linewidth=2, figsize=(10, 6))
+
+# Title and labels
+ax.set_title("Popularity of the Name 'Brittany' Over Time", fontsize=14)
+ax.set_xlabel("Year")
+ax.set_ylabel("Total")
+
+# Highlight 2003 with a red dot
+brit_90s = brittany_df[brittany_df['year'] == 1990]
+ax.scatter(brit_90s['year'], brit_90s['Total'], color='red', label='Peek of Brittany', zorder=10)
+
+# Show legend
+ax.legend()
+
+print("I would say she is around 30 years old because brittany was most popular in the 90's ")
+
+```
+
+
+<!-- Make sure at least one of your charts includes reference marks!! -->

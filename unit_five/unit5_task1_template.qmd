@@ -1,0 +1,305 @@
+---
+title: "Client Report - The War with Star Wars"
+subtitle: "Unit 5 Task 1"
+author: "[STUDENT NAME]"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+---
+
+```{python}
+import pandas as pd 
+import numpy as np
+from lets_plot import *
+
+from types import GeneratorType
+import pandas as pd
+import numpy as np
+
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn import metrics
+
+LetsPlot.setup_html(isolated_frame=True)
+```
+
+
+```{python}
+# import your data here using pandas and the URL
+url = "https://github.com/fivethirtyeight/data/raw/master/star-wars-survey/StarWars.csv"
+df = pd.read_csv(url, encoding='ISO-8859-1', header=0)
+
+``` 
+
+
+
+## QUESTION 1
+
+__Shorten the column names and clean them up for easier use with pandas.__ Provide a table or list that exemplifies how you fixed the names.  
+
+_type your write-up and analysis here_
+
+```{python}
+pattern = r'seen|fan|rank|favorably|shot|familiar|Expanded Universe|Star Trek|Gender|Age|Income|Education|Location' 
+
+# my_col = pd.Series(df.columns)
+
+# display(df.iloc[15])
+
+# df.head(1)
+
+first_row = pd.Series(df.iloc[0]).reset_index(drop=True)
+# print(first_row)
+
+# episode_numbers = first_row.str.findall()
+pattern2 = r'\b(I\w*|V\w*)\b|Han|Leia|Yoda|Luke|Anakin|Obi|Palpatine|Vader|Lando|Boba|3P0|R2|Jar|Padme'
+episode_numbers = first_row.str.extract(f'({pattern2})', expand=True)[0].fillna("")
+
+
+print(episode_numbers)
+
+col_series = pd.Series(df.columns).reset_index(drop=True)
+
+extracted = col_series.str.extract(f'({pattern})', expand=False).ffill().fillna("")
+
+print(extracted)
+
+combined = extracted.str.cat(episode_numbers, sep='_')
+
+base = combined.str.extract(r'^(.*)_$', expand=False).fillna(combined)
+
+
+base = base.reset_index(drop=True)
+
+# Assign new column names to df
+df.columns = base
+df.drop(0, axis= 0, inplace=True)
+
+df.head()
+
+# combined.head()
+
+``` 
+
+```{python}
+#print(my_col)
+
+# .str.replace(
+
+# try rename and replace
+
+
+# # Include and execute your code here
+# #use find all
+
+# new_col_names = ["id", "seen_any", "fan_starwars", 
+# "seen_1", "seen_2", "seen_3", "seen_4", "seen_5", "seen_6", 
+# "rank_1", "rank_2", "rank_3", "rank_4", "rank_5", "rank_6", 
+# "fav_han", "fav_luke", "fav_leia", "fav_anakin", "fav_obi", "fav_palpatine", "fav_darth", "fav_lando", "fav_boba", "fav_c3po", "fav_r2", "fav_jar", "fav_padme", "fav_yoda", 
+# "who_shot_first", "familiar_expanded_universe", "fan_expanded_universe", "fav_startrek", "gender", "age", "income", "educ", "region"] 
+
+# df.columns = new_col_names[:len(df.columns)]
+
+# df.columns
+
+# sw_dat = pd. read_csv(url, encoding_errors="ignore", header=None, skiprows=2)
+
+# col_names = pd. read_csv(url, encoding="ISO-8859-1", header=None, nrows=2)
+
+# # print(col_names.iloc[1].unique())
+
+# pattern = 'Ep|I|II|III|IV|V|VI|Han|Luke|Leia|Anakin|Obi Wan|Palpatine|Darth Vader|Lando|Boba Fett|3P0|R2|Jar Jar|Padme|Yoda'
+
+# q = col_names.iloc[1].ffill().str.findall(pattern).str.join('').fillna('')
+# a = sw_dat.iloc[1].ffill().str.join('').fillna('')
+
+
+
+# a.unique()
+
+# columns = (q+"_"+a). str.strip("_").str.replace(" ", "_")
+# sw_dat.columns = columns
+# print(columns)
+
+#################### #VERSION 2 
+# sw_dat = pd.read_csv(url, encoding="ISO-8859-1", header=None, skiprows=2)
+# col_names = pd.read_csv(url, encoding="ISO-8859-1", header=None, nrows=2)
+
+# # Updated pattern with Response columns included
+# pattern = r'Ep|I|II|III|IV|V|VI|Han|Luke|Leia|Anakin|Obi_Wan|Palpatine|Darth_Vader|Lando|Boba_Fett|3P0|R2|Jar_Jar|Padme|Yoda|Fan|Seen|Rank|View|Shot|Gender|Age|Income|Education|Region|Response(?:_\d+)?'
+
+# # Extract and clean short question names
+# q = col_names.iloc[1].ffill().str.findall(pattern).str.join('').str.strip().str.replace(" ", "_").fillna('')
+
+# # Force the first column to be Responder_ID
+# q.iloc[0] = "Responder_ID"
+
+# # Ensure every column has a unique name
+# seen = {}
+# for i in range(1, len(q)):
+#     name = q.iloc[i] if q.iloc[i] else "Resp"
+#     count = seen.get(name, 0)
+#     new_name = f"{name}_{count+1}" if count else name
+#     seen[name] = count + 1
+#     q.iloc[i] = new_name
+
+# # Assign the cleaned column names
+# sw_dat.columns = q
+
+# # Melt the data (value_name is changed to avoid conflict)
+# long_df = sw_dat.melt(id_vars=["Responder_ID"], var_name="Question", value_name="Answer")
+
+# # Remove empty question labels just in case
+# long_df = long_df[long_df["Question"] != ""]
+
+# # Reset index
+# long_df = long_df.reset_index(drop=True)
+
+# # Preview result
+# print(long_df.head(2000))
+#####################################################
+
+# sw_dat = pd.read_csv(url, encoding="ISO-8859-1", header=None, skiprows=2)
+# col_names = pd.read_csv(url, encoding="ISO-8859-1", header=None, nrows=2)
+
+
+# pattern = r'Ep|I|II|III|IV|V|VI|Han|Luke|Leia|Anakin|Obi_Wan|Palpatine|Darth_Vader|Lando|Boba_Fett|3P0|R2|Jar_Jar|Padme|Yoda|Fan|Seen|Rank|View|Shot|Gender|Age|Income|Education|Region|Response(?:_\d+)?'
+
+
+# q = col_names.iloc[1].ffill().str.findall(pattern).str.join('').str.strip().str.replace(" ", "_").fillna('')
+# q.iloc[0] = "Responder_ID"
+
+
+# seen = {}
+# for i in range(1, len(q)):
+#     name = q.iloc[i] if q.iloc[i] else "Resp"
+#     count = seen.get(name, 0)
+#     new_name = f"{name}_{count+1}" if count else name
+#     seen[name] = count + 1
+#     q.iloc[i] = new_name
+
+
+# sw_dat.columns = q
+
+# print(sw_dat.columns[:35].tolist())
+
+
+
+```
+
+
+
+## QUESTION 2
+
+__Filter the dataset to 835 respondents that have seen at least one film__ (Hint: Don't use the column `Have you seen any of the 6 films in the Star Wars franchise?`) Not much to show here by way of output. Print the shape (i.e. number of rows and number of columns) of the filtered dataset.
+
+_type your write-up and analysis here_
+```{python}
+# Include and execute your code here
+ 
+# # df2 = df[df['seen_any'] == "Yes"] 
+# # df2.head() 
+
+# seen_cols = ['seen_1', 'seen_2', 'seen_3', 'seen_4', 'seen_5', 'seen_6']
+
+# seen_any = df[seen_cols].apply(lambda x: x == 'Yes').any(axis=1)
+
+# df_seen.shape
+# print(f"I could not get this one to work! It is showing this but i don't think its right {df_seen = df[seen_any]}")
+
+
+# np select
+####################################################
+
+# # Find the columns that start with "seen_" — these are the ones indicating whether a person has seen a film
+# seen_cols = [col for col in df.columns if col.startswith('seen_')]
+
+# # Check which respondents have "Yes" in at least one of those columns
+# has_seen = df[seen_cols].eq('Yes').any(axis=1)
+
+# # Filter the dataset
+# df_seen = df[has_seen]
+
+# # Display the number of respondents and columns
+# print(f"Filtered dataset shape: {df_seen.shape}")
+####################################################
+
+```
+
+
+```{python}
+seen_cols = ['seen_I', 'seen_II', 'seen_III', 'seen_IV', 'seen_V', 'seen_VI']
+
+# Filter rows where any of the seen columns is NOT null
+has_seen = df[seen_cols].notna().any(axis=1)
+
+df_seen = df[has_seen]
+
+print(f"Filtered dataset shape: {df_seen.shape}")
+
+```
+
+## QUESTION 3
+
+__Validate that the data provided on GitHub lines up with the article by recreating 2 of the visuals from the article.__  These visuals should be similar, but don't have to be exact. They need to be close enough that we can validate that the value
+s in the dataset match the graphs in the chart. Though their charts were built using a different plotting software, the more you push yourself for an exact replica, the more you will learn. Spend at least a couple of hours on this. 
+
+_type your write-up and analysis here_
+
+```{python}
+import matplotlib.pyplot as plt
+
+# Columns with rank data
+rank_cols = [col for col in df_seen.columns if col.startswith('rank_')]
+
+# Compute the average rank (lower = better)
+rank_means = df_seen[rank_cols].apply(pd.to_numeric, errors='coerce').mean()
+
+# Plot
+plt.figure(figsize=(10, 5))
+rank_means.plot(kind='bar', color='skyblue')
+plt.title("Average Ranking of Star Wars Episodes (Lower is Better)")
+plt.ylabel("Average Ranking")
+plt.xticks(rotation=45)
+plt.grid(axis='y')
+plt.show()
+
+```
+
+```{python}
+seen_cols = ['seen_I', 'seen_II', 'seen_III', 'seen_IV', 'seen_V', 'seen_VI']
+
+# Calculate percent seen by checking non-null values in each column
+seen_percent = df_seen[seen_cols].notna().mean() * 100
+
+# Plot
+plt.figure(figsize=(10, 5))
+seen_percent.plot(kind='bar', color='lightgreen')
+plt.title("Percentage of Respondents Who Have Seen Each Star Wars Film")
+plt.ylabel("Percent Seen (%)")
+plt.xticks(rotation=45)
+plt.grid(axis='y')
+plt.show()
+
+```

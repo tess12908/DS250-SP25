@@ -1,0 +1,249 @@
+---
+title: "Client Report - Recoding Range Variables: Smarter than Dummy Encoding"
+subtitle: "Unit 5 Task 2"
+author: "[STUDENT NAME]"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+---
+
+```{python}
+import pandas as pd 
+import numpy as np
+from lets_plot import *
+# add the additional libraries you need to import for ML here
+
+LetsPlot.setup_html(isolated_frame=True)
+```
+
+
+```{python}
+# import your data here using pandas and the URL
+url = "https://github.com/fivethirtyeight/data/raw/master/star-wars-survey/StarWars.csv"
+df = pd.read_csv(url, encoding='ISO-8859-1', header=0)
+
+pattern = r'seen|fan|rank|favorably|shot|familiar|Expanded Universe|Star Trek|Gender|Age|Income|Education|Location' 
+
+# my_col = pd.Series(df.columns)
+
+# display(df.iloc[15])
+
+# df.head(1)
+
+first_row = pd.Series(df.iloc[0]).reset_index(drop=True)
+# print(first_row)
+
+# episode_numbers = first_row.str.findall()
+pattern2 = r'\b(I\w*|V\w*)\b|Han|Leia|Yoda|Luke|Anakin|Obi|Palpatine|Vader|Lando|Boba|3P0|R2|Jar|Padme'
+episode_numbers = first_row.str.extract(f'({pattern2})', expand=True)[0].fillna("")
+
+
+print(episode_numbers)
+
+col_series = pd.Series(df.columns).reset_index(drop=True)
+
+extracted = col_series.str.extract(f'({pattern})', expand=False).ffill().fillna("")
+
+print(extracted)
+
+combined = extracted.str.cat(episode_numbers, sep='_')
+
+base = combined.str.extract(r'^(.*)_$', expand=False).fillna(combined)
+
+
+base = base.reset_index(drop=True)
+
+# Assign new column names to df
+df.columns = base
+df.drop(0, axis= 0, inplace=True)
+
+df.head()
+```
+
+## QUESTION 1
+
+1. __Clean and format the data so that it can be used in a machine learning model.__ As you format the data, you should complete each item listed below. In your final report provide an excerpt of the reformatted data with a short description of the changes made.  
+
+    a. Create a new column that converts the age ranges to a single number. Drop the age range categorical column by finding the average age 
+    a. Create a new column that converts the education groupings to a single number. Drop the school categorical column. 
+    a. Create a new column that converts the income ranges to a single number. Drop the income range categorical column 
+
+    a. Create your target (also known as “y” or “label”) column based on the new income range column  
+    a. Encode favorability ratings as a number. Remove the favorability categorical columns.
+    a. One-hot encode all remaining categorical columns
+
+_type your write-up and analysis here_
+
+```{python}
+#put the code here
+df.Age = (df.Age.replace(
+    ['18-29', '30-44', '> 60', '45-60'],
+    [18, 30, 65, 45]
+    )
+)
+
+df.Education = (df.Education.replace(
+    ['High school degree', 'Bachelor degree',
+       'Some college or Associate degree', 'Graduate degree',
+       'Less than high school degree'],
+    [12, 16, 14, 18, 10]
+    )
+)
+
+df.Income = (df.Income.replace(
+  ['$0 - $24,999', '$25,000 - $49,999', '$50,000 - $99,999','$100,000 - $149,999'],
+  [0, 25000, 50000, 100000]
+)
+)
+
+rating_map = {
+    'Very favorably': 5,
+    'Somewhat favorably': 4,
+    'Unfamiliar (N/A)': 3,
+    'Neither favorably nor unfavorably (neutral)': 3,
+    'Somewhat unfavorably': 2,
+    'Very unfavorably': 1
+}
+
+df.favorably_Han = df.favorably_Han.replace(rating_map)
+df.favorably_Luke = df.favorably_Luke.replace(rating_map)
+df.favorably_Leia = df.favorably_Leia.replace(rating_map)
+df.favorably_Anakin = df.favorably_Anakin.replace(rating_map)
+df.favorably_Obi = df.favorably_Obi.replace(rating_map)
+df.favorably_Palpatine = df.favorably_Palpatine.replace(rating_map)
+df.favorably_Vader = df.favorably_Vader.replace(rating_map)
+df.favorably_Lando = df.favorably_Lando.replace(rating_map)
+df.favorably_Boba = df.favorably_Boba.replace(rating_map)
+df.favorably_3P0 = df.favorably_3P0.replace(rating_map)
+df.favorably_R2 = df.favorably_R2.replace(rating_map)
+df.favorably_Jar = df.favorably_Jar.replace(rating_map)
+df.favorably_Padme = df.favorably_Padme.replace(rating_map)
+df.favorably_Yoda = df.favorably_Yoda.replace(rating_map)
+
+
+df.Income = df.Income.fillna(0)
+
+df['Age'] = df['Age'].astype('category')
+df['Education'] = df['Education'].astype('category')
+df['Income'] = df['Income'].astype('category')
+
+y=df.Income
+
+columns = [
+    'seen', 'fan', 'seen_I', 'seen_II', 'seen_III', 'seen_IV', 'seen_V', 'seen_VI',
+    'rank_I', 'rank_II', 'rank_III', 'rank_IV', 'rank_V', 'rank_VI',
+    'shot', 'familiar', 'Gender', 'Location'
+]
+
+# print(df.columns.tolist())
+
+
+df = pd.get_dummies(df, columns=columns, drop_first=True)
+
+x = df.drop("Income", axis=1)
+
+
+
+
+```
+
+```{python}
+# Hint one
+# age = (sw_dat.Age.replace(
+#     ['18-29', '30-44', '> 60', '45-60'],
+#     [18, 30, 65, 45]
+#     )
+# )
+
+# educ = (sw_dat.Education.replace(
+#     ['High school degree', 'Bachelor degree',
+#        'Some college or Associate degree', 'Graduate degree',
+#        'Less than high school degree'],
+#     [12, 16, 14, 18, 10]
+#     )
+# )
+
+# dummy_vars = pd.get_dummies(sw_dat.filter(["shot_first", "seen_EpI"]))*1
+
+# x = pd.concat([age, educ, dummy_vars], axis=1)
+
+#########################################3
+# #Hint 2 
+
+# df["seen_I"].value_counts(dropna= False)
+
+# conds = [
+#   df["seen_I"] == 'Star Wars: Episode I  The Phantom Menace',
+
+# ]
+
+# results = [
+#   True
+# ]
+
+# df["seen_I"] = np.select(conds, results, default=False)
+
+# df["Income"].value_counts(dropna= False)
+
+###############################################
+# Attempt one 
+
+# income_map = {
+#     'Under $25,000': 12500,
+#     '$25,000 - $49,999': 37500,
+#     '$50,000 - $74,999': 62500,
+#     '$75,000 - $99,999': 87500,
+#     '$100,000 - $149,999': 125000,
+#     '$150,000 and over': 175000
+# }
+# df['Income_num'] = df['Household Income'].map(income_map)
+# df.drop('Household Income', axis=1, inplace=True)
+
+# df['target_income'] = df['Income_num']
+
+# favor_cols = [col for col in df.columns if 'favorably' in col.lower()]
+# favor_map = {
+#     'Very favorably': 2,
+#     'Somewhat favorably': 1,
+#     'Neutral': 0,
+#     'Somewhat unfavorably': -1,
+#     'Very unfavorably': -2
+# }
+
+# for col in favor_cols:
+#     df[col+'_num'] = df[col].map(favor_map)
+# df.drop(favor_cols, axis=1, inplace=True)
+
+# # One-hot encode remaining categorical columns (object dtype)
+# categorical_cols = df.select_dtypes(include=['object']).columns.tolist()
+
+# # Drop the target column from categorical encoding if present
+# if 'target_income' in categorical_cols:
+#     categorical_cols.remove('target_income')
+
+# df = pd.get_dummies(df, columns=categorical_cols)
+
+# # Now df is cleaned and ready for ML models
+# print(df.head())
+# print(f"Final shape: {df.shape}")
+
+```
+

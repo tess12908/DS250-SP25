@@ -1,0 +1,117 @@
+---
+title: "Client Report -How good is it, really?"
+subtitle: "Unit 4 Task 2"
+author: "[STUDENT NAME]"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+---
+
+```{python}
+import pandas as pd 
+import numpy as np
+from lets_plot import *
+
+from types import GeneratorType
+import pandas as pd
+import numpy as np
+
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn import metrics
+
+LetsPlot.setup_html(isolated_frame=True)
+```
+
+
+```{python}
+# import your data here using pandas and the URL
+dwellings = pd.read_csv('https://github.com/byuidatascience/data4dwellings/raw/master/data-raw/dwellings_denver/dwellings_denver.csv')
+
+dwellings_ml = pd.read_csv('https://github.com/byuidatascience/data4dwellings/raw/master/data-raw/dwellings_ml/dwellings_ml.csv')
+
+# code form the last HW 
+x = dwellings_ml.filter(["quality", "condition", "livearea", "stories", "arcstyle", "basement", "condition_Fair", "nocars", "numbdrm", "netprice", "numbaths", "sprice", "qualified_Q", "deduct", "finbsmnt", "abstrprd"]) 
+
+
+y = dwellings_ml['before1980'] 
+
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = .2, random_state = 34)
+
+classifier_DT = GradientBoostingClassifier(max_depth = 10)
+
+classifier_DT.fit(x_train, y_train)
+
+y_predicted_DT = classifier_DT.predict(x_test)
+
+print("Accuracy:", metrics.accuracy_score(y_test, y_predicted_DT))
+
+
+```
+
+## QUESTION 1
+
+__Describe the quality of your classification model using 2-3 different evaluation metrics.__ You also need to explain how to interpret each of the evaluation metrics you use.  
+
+_type your write-up and analysis here_
+
+```{python}
+# Include and execute your code here
+
+
+from sklearn.metrics import classification_report
+
+print(classification_report(y_test, y_predicted_DT))
+
+
+print("In this code, it goes through and finds the precision, recall, f1-score and support. The precision is a way to find ONLY thee relevant data points. Recall is for finding all relevant cases in the model. The f1 is a mix of the two. So in this data, it is showing that it was 89% then 92% correct when predicting. For recall the data is saying that 87% and 94% of the true examples were found. The f1 score is showing that 88% and 93% of the time it found the balance between the other two")
+
+```
+
+
+## QUESTION 2
+
+__Justify your classification model by discussing the most important features selected by your model.__ This discussion should include a feature importance chart and a description of the features.
+
+_type your write-up and analysis here_
+
+```{python}
+# Include and execute your code here
+feature_df = pd.DataFrame({'features': x.columns, 'importance': classifier_DT.feature_importances_})
+feature_df = feature_df.sort_values(by="importance", ascending=False)
+
+plot = ggplot(feature_df, aes(x='features', y='importance')) + \
+    geom_bar(stat='identity', fill='pink') + \
+    coord_flip() + \
+    ggtitle("Feature Importances from Decision Tree")
+
+print(plot)
+
+print("As you can see in this model, the number of stories is viewed as the most important feature. On my graph, one of the things people do not look for is a house that is in fair condition.")
+
+print("The features used in the model include various characteristics of the dwellings, such as overall quality, physical condition, and architectural style (arcstyle). Size-related attributes like live area, number of stories, bedrooms (numbdrm), bathrooms (numbaths), and the presence or size of a basement (including finished basement or finbsmnt) are included. The model also considers parking availability (nocars), different price-related variables such as net price (netprice), selling price (sprice), and potential deductions (deduct). Categorical indicators like condition_Fair and qualification flags such as qualified_Q provide additional information about the state and eligibility of properties. Lastly, abstrprd likely refers to an appraisal or abstracted price measure used in the analysis.")
+
+
+ 
+```

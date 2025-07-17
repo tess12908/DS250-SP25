@@ -1,0 +1,182 @@
+---
+title: "Class Notes"
+subtitle: "Unit 3"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+---
+
+```{python}
+import pandas as pd 
+import numpy as np
+import sqlite3
+from lets_plot import *
+
+LetsPlot.setup_html(isolated_frame=True)
+```
+
+# Missing Values
+
+```{python}
+df = pd.DataFrame({"name": ['Alfred', 'Batman', 'Catwoman'],
+                   "toy": [np.nan, 'Batmobile', 'Bullwhip'],
+                   "born": [pd.NaT, pd.Timestamp("1940-04-25"),
+                            pd.NaT]})
+
+df.isnull()
+
+df.describe()
+
+df.info()
+
+#gets rid of all data that is not complete 
+df.dropna()
+# only display the data that is complete in the toy column 
+df.dropna(subset = ["toy"])
+
+```
+
+
+
+```{python}
+
+df = pd.DataFrame([[np.nan, 2, np.nan, 0],
+                   [3, 4, np.nan, 1],
+                   [np.nan, np.nan, np.nan, 5],
+                   [np.nan, 3, np.nan, 4]],
+                  columns=list("ABCD"))
+
+df.dropna()
+
+
+```
+
+
+# Let's Play
+
+
+```{python}
+import pandas as pd
+import numpy as np
+import json
+
+url_cars = "https://github.com/byuidatascience/data4missing/raw/master/data-raw/mtcars_missing/mtcars_missing.json"
+cars = pd.read_json(url_cars)
+
+```
+
+__QUESTION__:  What types of missing values to you notice?  
+
+```{python}
+
+cars
+#this will tell you what values are NA in summary form, but does not include the empty values
+cars.isna().sum()
+
+```
+
+
+Useful pandas methods for finding and dealing with missing values:  
+
+  1. `.unique()`
+  2. `.describe()`
+  3. `.value_counts()`
+  4. `.isna()` / `.isnull()`
+  5. `.info()`
+
+
+
+
+```{python}
+# Try the above functions
+
+# puts a column into a array so you can see what is a empty value 
+#cars.car.unique()
+
+#gives you a rundown of all of the numbers in the data 
+cars.describe()
+```
+
+
+# Clean up Cars
+
+  6. `.replace()`
+
+```{python}
+#cars_clean = cars
+
+##replace 999 with nan and blank strings with blah 
+cars.replace([999, ''], [np.nan, "blah"])
+
+#replace 999 with nan and change it permenet 
+#cars.replace(999, np.nan, inplace=True)
+
+
+```
+
+JSON
+
+Save a df as a json
+```{python}
+cars_new.to_json("my_cars_data.json", indent=2, orient="records")
+```
+
+
+Create a list DAYS_IN_MONTH with values:
+[31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+Define function is_leap_year(year):
+    If (year divisible by 4 and not divisible by 100) or (year divisible by 400):
+        Return True
+    Else:
+        Return False
+
+Define function days_in_year(year):
+    If is_leap_year(year):
+        Return 366
+    Else:
+        Return 365
+
+Define function days_from_start(day, month, year):
+    Set total_days to 0
+
+    For each year y from 1 up to (but not including) year:
+        Add days_in_year(y) to total_days
+
+    For each month m from 1 up to (but not including) month:
+        If m is February and is_leap_year(year):
+            Add 29 to total_days
+        Else:
+            Add DAYS_IN_MONTH[m - 1] to total_days
+
+    Add day to total_days
+
+    Return total_days
+
+Input start_day, start_month, start_year
+Input end_day, end_month, end_year
+
+Set total_days_start = days_from_start(start_day, start_month, start_year)
+Set total_days_end = days_from_start(end_day, end_month, end_year)
+
+Set difference = total_days_end - total_days_start
+
+Print "Days between: " + difference

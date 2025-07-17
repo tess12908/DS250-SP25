@@ -1,0 +1,130 @@
+---
+title: "Client Report - Exploring Names"
+subtitle: "Unit 1 Task 1"
+author: "Tess Holliniger"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+---
+
+```{python}
+import pandas as pd
+import numpy as np
+from lets_plot import *
+
+LetsPlot.setup_html(isolated_frame=True)
+```
+
+```{python}
+# Learn morea about Code Cells: https://quarto.org/docs/reference/cells/cells-jupyter.html
+
+# Include and execute your code here
+df = pd.read_csv("https://github.com/byuidatascience/data4names/raw/master/data-raw/names_year/names_year.csv")
+print(df)
+
+```
+
+## QUESTION 1
+
+__What was the earliest year that the name ‘Felisha’ was used?__
+
+_type your results and analysis here_
+
+```{python}
+# Q1
+
+df_felisha = df.query("name == 'Felisha'") 
+felisha_early = df_felisha['year'].iloc[0]
+print(f"The earliest year ‘Felisha’ was used was in{felisha_early}")
+
+#df.query('name=="Felisha"').filter(["year"]).sort_values()
+
+```
+
+
+## QUESTION 2
+
+__What year had the most babies named 'David'? How many babies were named 'David' that year?__
+
+_type your results and analysis here_
+
+```{python}
+# Q2
+
+df_david = df.query("name == 'David'")
+max_value_david = df_david['Total'].max()
+most_in_year_david = df_david[df_david['Total'] == max_value_david]['year'].iloc[0]
+
+print(f"The number of babies named David born in {most_in_year_david} were {max_value_david}") 
+
+```
+
+
+## QUESTION 3
+
+__What year did your name hit its peak? How many babies were named your name in that year?__
+
+_type your results and analysis here_
+
+```{python}
+# Q3
+
+df_tess = df.query("name == 'Tess'")
+max_value_tess = df_tess['Total'].max()
+most_in_year_tess = df_tess[df_tess['Total'] == max_value_tess]['year'].iloc[0]
+
+print(f"The number of babies named Tess born in {most_in_year_tess} were {max_value_tess}") 
+
+```
+
+
+
+## QUESTION 4
+
+__How many babies are named ‘Oliver’ in the state of Utah for all years?__  
+
+_type your results and analysis here_
+
+```{python}
+# Q4
+df_oliver = df.query("name == 'Oliver'")
+total_utah_births = df_oliver['UT'].sum()
+
+print(total_utah_births)
+```
+
+---
+
+## QUESTION 5
+
+__In the most recent year, what was the most common female name in Utah?__ 
+
+_type your results and analysis here_
+
+```{python}
+# Q5
+df.query("year == 2015")[['name','UT']].sort_values('UT', ascending=False) 
+print("The most common name is Emma in Utah in the most recent years")
+
+```
+
+
+---

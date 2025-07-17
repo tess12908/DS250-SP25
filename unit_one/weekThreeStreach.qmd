@@ -1,0 +1,42 @@
+
+```{python}
+import pandas as pd
+import numpy as np
+from lets_plot import *
+
+LetsPlot.setup_html(isolated_frame=True)
+
+df = pd.read_csv("https://github.com/byuidatascience/data4names/raw/master/data-raw/names_year/names_year.csv") 
+
+print("Elliot What?")
+selected_names = ['Elliot']
+
+elliot_df = df[
+    (df['name'].isin(selected_names)) & 
+    (df['year'] >= 1950) & 
+    (df['year'] <= 2020)
+]
+
+pivot_df = elliot_df.pivot(index='year', columns='name', values='Total')
+
+
+chart = pivot_df.plot(
+    figsize=(10, 6),
+    linewidth=2
+)
+
+chart.axvline(x=1982, color='red', linestyle='--', linewidth=1.5)
+chart.text(1982 - 8.5, chart.get_ylim()[1]*0.9, 'ET Released', color='red')
+
+
+chart.axvline(x=1985, color='red', linestyle='--', linewidth=1.5)
+chart.text(1985 + 0.5, chart.get_ylim()[1]*0.9, 'Second Release', color='red')
+
+chart.axvline(x=2002, color='red', linestyle='--', linewidth=1.5)
+chart.text(2002 + 0.5, chart.get_ylim()[1]*0.9, 'Third Release', color='red')
+
+
+chart.set_xlabel('Year')
+chart.set_ylabel('Total')
+chart.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+

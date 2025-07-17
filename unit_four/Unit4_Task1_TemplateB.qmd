@@ -1,0 +1,216 @@
+---
+title: "Client Report - Can You Predict That?"
+subtitle: "Unit 4 Task 1"
+author: "[STUDENT NAME]"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+---
+
+```{python}
+import pandas as pd 
+import numpy as np
+from lets_plot import *
+
+from types import GeneratorType
+import pandas as pd
+import numpy as np
+
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn import metrics
+
+LetsPlot.setup_html(isolated_frame=True)
+```
+
+
+# Tidy Data vs. ML-Ready Data
+
+Import the datasets below.  Spend some time getting to know the data.  
+
+  * What are the column names? How many rows?  
+  * Based on the task in Canvas, what is the Target?   
+  * What are the factors/features you think will be most predictive of the Target?  
+
+```{python}
+# import your data here using pandas and the URL
+dwellings = pd.read_csv('https://github.com/byuidatascience/data4dwellings/raw/master/data-raw/dwellings_denver/dwellings_denver.csv')
+
+dwellings_ml = pd.read_csv('https://github.com/byuidatascience/data4dwellings/raw/master/data-raw/dwellings_ml/dwellings_ml.csv')
+
+# print(dwellings)
+# print(dwellings_ml)
+
+rows, columns = dwellings.shape
+column_names = dwellings.columns
+print(rows)
+print(columns)
+print(column_names)
+print("there are 22913 rows and 26 col in dwellings")
+print("""Col. names: 'parcel', 'nbhd', 'abstrprd', 'livearea', 'finbsmnt', 'basement', 'yrbuilt', 'condition', 'quality', 'totunits', 'stories', 'gartype' 'nocars', 'xtraffic', 'floorlvl', 'numbdrm', 'numbaths', 'arcstyle', 'sprice', 'deduct', 'netprice', 'tasp', 'smonth', 'syear', 'qualified',
+'status'""" )
+
+rowsA, columnsB = dwellings_ml.shape
+column_namesA = dwellings_ml.columns
+print(rowsA)
+print(columnsB)
+print(column_namesA)
+print("there are 22913 rows and 51 col in dwellings_ml")
+print("""Col names in dwellings_ml: 'parcel', 'abstrprd', 'livearea', 'finbsmnt', 'basement', 'yrbuilt',
+       'totunits', 'stories', 'nocars', 'numbdrm', 'numbaths', 'sprice',
+       'deduct', 'netprice', 'tasp', 'smonth', 'syear', 'condition_AVG',
+       'condition_Excel', 'condition_Fair', 'condition_Good',
+       'condition_VGood', 'quality_A', 'quality_B', 'quality_C', 'quality_D',
+       'quality_X', 'gartype_Att', 'gartype_Att/Det', 'gartype_CP',
+       'gartype_Det', 'gartype_None', 'gartype_att/CP', 'gartype_det/CP',
+       'arcstyle_BI-LEVEL', 'arcstyle_CONVERSIONS', 'arcstyle_END UNIT',
+       'arcstyle_MIDDLE UNIT', 'arcstyle_ONE AND HALF-STORY',
+       'arcstyle_ONE-STORY', 'arcstyle_SPLIT LEVEL', 'arcstyle_THREE-STORY',
+       'arcstyle_TRI-LEVEL', 'arcstyle_TRI-LEVEL WITH BASEMENT',
+       'arcstyle_TWO AND HALF-STORY', 'arcstyle_TWO-STORY', 'qualified_Q',
+       'qualified_U', 'status_I', 'status_V', 'before1980'""")
+
+print("The target is to find homes built pre 1980")
+
+print("The factors that i think will be most helpful to finding out what houses were built before 1980 are: condition, arcstyle, netprice, condition_Fair and , condition_Good ")
+```
+
+
+Describe the main differences between the two datasets.
+
+# Exploration
+
+## The Target
+
+Create appropriate **numerical** and **graphical** summaries of the target.  
+
+```{python}
+
+plotA = ggplot(dwellings, aes(x='yrbuilt')) + \
+    geom_histogram(binwidth=10, fill='#0000FF', color='black') + \
+    ggtitle('Year Built in the dwellings data') + \
+    xlab('Year Built') + \
+    ylab('Number of Houses')
+
+plotB = ggplot(dwellings_ml, aes(x='yrbuilt')) + \
+    geom_histogram(binwidth=10, fill='#FF0000', color='black') + \
+    ggtitle('Year Built in the dwellings_ml data') + \
+    xlab('Year Built') + \
+    ylab('Number of Houses')
+#display(plotA)
+display(plotB)
+
+average_valueA = dwellings['yrbuilt'].mean()
+
+average_valueB = dwellings_ml['yrbuilt'].mean()
+
+print(f"the average year of houses built for dwellings: {average_valueA:.0f}")
+print(f"the average year for houses built for dwellings_ml: {average_valueA:.0f}")
+
+
+
+
+```
+
+## Relationships
+
+Make 3 graphs that visualize the realtionship between the target and 3 features you think might predict the target.
+
+```{python}
+
+# Scatter Plot 1: Architecture style (number) vs stories
+plot1 = ggplot(dwellings, aes(x='arcstyle', y='stories')) + \
+    geom_point(color='blue', alpha=0.6) + \
+    ggtitle('Style vs Stories') + \
+    xlab('Architecture Style (number)') + \
+    ylab('Stories')
+
+# Scatter Plot 2: Garage type (number) vs stories
+plot2 = ggplot(dwellings, aes(x='gartype', y='stories')) + \
+    geom_point(color='green', alpha=0.6) + \
+    ggtitle('Garage Type vs Stories') + \
+    xlab('Garage Type (number)') + \
+    ylab('Stories')
+
+# Scatter Plot 3: Quality vs Livable Area
+plot3 = ggplot(dwellings, aes(x='quality', y='livearea')) + \
+    geom_point(color='orange', alpha=0.6) + \
+    ggtitle('Quality vs Livable Area') + \
+    xlab('Quality') + \
+    ylab('Livable Area (sq ft)')
+
+# Show the plots
+display(plot1)
+display(plot2)
+display(plot3)
+    
+```
+
+
+# Build a Model
+
+### Define X and y
+
+```{python}
+#what var will help narrow it down? 
+x = dwellings_ml.filter(["quality", "condition", "livearea", "stories", "arcstyle", "basement", "condition_Fair", "nocars", "numbdrm", "netprice", "numbaths", "sprice", "qualified_Q", "deduct", "finbsmnt", "abstrprd"]) 
+
+# was it built before 1980 
+y = dwellings_ml['before1980'] 
+```
+
+
+### Create the Test/Train split
+
+```{python}
+
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = .2, random_state = 34)
+
+# x_train.head()
+# x_test.head()
+```
+
+### Define the Classifier and Train the Model
+
+```{python}
+
+# Create a decision tree
+classifier_DT = GradientBoostingClassifier(max_depth = 10)
+#classifier_DT = DecisionTreeClassifier(max_depth = 10)
+
+# Fit the decision tree
+classifier_DT.fit(x_train, y_train)
+
+# Test the decision tree (make predictions)
+y_predicted_DT = classifier_DT.predict(x_test)
+
+# Evaluate the decision tree
+print("Accuracy:", metrics.accuracy_score(y_test, y_predicted_DT))
+```
+
+
+Work on the model until you can get >90% accuracy.  
+
+Try using different feature sets, different models, or different parameters within the models.  
+

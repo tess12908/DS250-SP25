@@ -1,0 +1,225 @@
+---
+title: "Client Report - Star Wars for Dummies"
+subtitle: "Unit 5 Task 3"
+author: "[STUDENT NAME]"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+---
+
+```{python}
+import pandas as pd 
+import numpy as np
+from lets_plot import *
+
+from types import GeneratorType
+import pandas as pd
+import numpy as np
+
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn import metrics
+from sklearn.metrics import classification_report
+
+
+LetsPlot.setup_html(isolated_frame=True)
+```
+
+
+```{python}
+# import your data here using pandas and the URL
+url = "https://github.com/fivethirtyeight/data/raw/master/star-wars-survey/StarWars.csv"
+df = pd.read_csv(url, encoding='ISO-8859-1', header=0)
+
+
+
+```
+
+## QUESTION 1
+
+1. __Prep the data for machine learning:__
+    a. Create your target (also known as “y” or “label”) column based on the new income range column  
+    a. One-hot encode all remaining categorical columns 
+
+_type your write-up and analysis here_
+
+```{python}
+# Include and execute your code here
+pattern = r'seen|fan|rank|favorably|shot|familiar|Expanded Universe|Star Trek|Gender|Age|Income|Education|Location' 
+
+# my_col = pd.Series(df.columns)
+
+# display(df.iloc[15])
+
+# df.head(1)
+
+first_row = pd.Series(df.iloc[0]).reset_index(drop=True)
+# print(first_row)
+
+# episode_numbers = first_row.str.findall()
+pattern2 = r'\b(I\w*|V\w*)\b|Han|Leia|Yoda|Luke|Anakin|Obi|Palpatine|Vader|Lando|Boba|3P0|R2|Jar|Padme'
+episode_numbers = first_row.str.extract(f'({pattern2})', expand=True)[0].fillna("")
+
+
+print(episode_numbers)
+
+col_series = pd.Series(df.columns).reset_index(drop=True)
+
+extracted = col_series.str.extract(f'({pattern})', expand=False).ffill().fillna("")
+
+print(extracted)
+
+combined = extracted.str.cat(episode_numbers, sep='_')
+
+base = combined.str.extract(r'^(.*)_$', expand=False).fillna(combined)
+
+
+base = base.reset_index(drop=True)
+
+# Assign new column names to df
+df.columns = base
+df.drop(0, axis= 0, inplace=True)
+
+df.head()
+```
+
+
+```{python}
+#put the code here
+df.Age = (df.Age.replace(
+    ['18-29', '30-44', '> 60', '45-60'],
+    [18, 30, 65, 45]
+    )
+)
+
+df.Education = (df.Education.replace(
+    ['High school degree', 'Bachelor degree',
+       'Some college or Associate degree', 'Graduate degree',
+       'Less than high school degree'],
+    [12, 16, 14, 18, 10]
+    )
+)
+
+df.Income = (df.Income.replace(
+  ['$0 - $24,999', '$25,000 - $49,999', '$50,000 - $99,999','$100,000 - $149,999', '$150,000+'],
+  [0, 25000, 50000, 100000, 150000]
+)
+)
+
+rating_map = {
+    'Very favorably': 5,
+    'Somewhat favorably': 4,
+    'Unfamiliar (N/A)': 3,
+    'Neither favorably nor unfavorably (neutral)': 3,
+    'Somewhat unfavorably': 2,
+    'Very unfavorably': 1
+}
+
+df.favorably_Han = df.favorably_Han.replace(rating_map)
+df.favorably_Luke = df.favorably_Luke.replace(rating_map)
+df.favorably_Leia = df.favorably_Leia.replace(rating_map)
+df.favorably_Anakin = df.favorably_Anakin.replace(rating_map)
+df.favorably_Obi = df.favorably_Obi.replace(rating_map)
+df.favorably_Palpatine = df.favorably_Palpatine.replace(rating_map)
+df.favorably_Vader = df.favorably_Vader.replace(rating_map)
+df.favorably_Lando = df.favorably_Lando.replace(rating_map)
+df.favorably_Boba = df.favorably_Boba.replace(rating_map)
+df.favorably_3P0 = df.favorably_3P0.replace(rating_map)
+df.favorably_R2 = df.favorably_R2.replace(rating_map)
+df.favorably_Jar = df.favorably_Jar.replace(rating_map)
+df.favorably_Padme = df.favorably_Padme.replace(rating_map)
+df.favorably_Yoda = df.favorably_Yoda.replace(rating_map)
+
+favorably_cols = [
+    'favorably_Han', 'favorably_Luke', 'favorably_Leia', 'favorably_Anakin',
+    'favorably_Obi', 'favorably_Palpatine', 'favorably_Vader', 'favorably_Lando',
+    'favorably_Boba', 'favorably_3P0', 'favorably_R2', 'favorably_Jar',
+    'favorably_Padme', 'favorably_Yoda', 'Age', 'Education'
+]
+
+for col in favorably_cols:
+    if col in df.columns:
+        df[col] = df[col].fillna(0)
+
+
+df.Income = df.Income.fillna(0)
+
+# df['Age'] = df['Age'].astype('category')
+# df['Education'] = df['Education'].astype('category')
+# df['Income'] = df['Income'].astype('category')
+
+df.Income = df.Income.astype(int)
+
+df["Income_target"] = df.Income.values > 50000
+
+y = df["Income_target"]
+
+
+columns = [
+    'seen', 'fan', 'seen_I', 'seen_II', 'seen_III', 'seen_IV', 'seen_V', 'seen_VI',
+    'rank_I', 'rank_II', 'rank_III', 'rank_IV', 'rank_V', 'rank_VI',
+    'shot', 'familiar', 'Gender', 'Location'
+]
+
+
+df = pd.get_dummies(df, columns=columns, drop_first=True)
+
+x = df.drop(["Income", "Income_target"], axis=1)
+```
+
+
+## QUESTION 2
+
+1. __Build a machine learning model that predicts whether a person makes at least $50k. Describe your model and report the accuracy.__
+
+_type your write-up and analysis here_
+
+```{python}
+# Include and execute your code here
+# make a list of the columns that would be usefull 
+
+# x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = .2, random_state = 34)
+
+# classifier_DT = GradientBoostingClassifier(max_depth=3, n_estimators=100, random_state=34)
+
+
+# classifier_DT.fit(x_train, y_train)
+
+# y_predicted_DT = classifier_DT.predict(x_test)
+
+# print("Accuracy:", metrics.accuracy_score(y_test, y_predicted_DT))
+
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=34)
+
+# Model
+model = GradientBoostingClassifier(max_depth=3, n_estimators=100, random_state=34)
+model.fit(x_train, y_train)
+
+# Predictions
+y_pred = model.predict(x_test)
+
+# Evaluation
+print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
+print(classification_report(y_test, y_pred))
+```

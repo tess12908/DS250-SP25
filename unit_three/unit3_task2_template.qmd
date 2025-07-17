@@ -1,0 +1,138 @@
+---
+title: "Client Report - Weather Delays"
+subtitle: "Unit 3 Task 2"
+author: "[STUDENT NAME]"
+format:
+  html:
+    self-contained: true
+    page-layout: full
+    title-block-banner: true
+    toc: true
+    toc-depth: 3
+    toc-location: body
+    number-sections: false
+    html-math-method: katex
+    code-fold: true
+    code-summary: "Show the code"
+    code-overflow: wrap
+    code-copy: hover
+    code-tools:
+        source: false
+        toggle: true
+        caption: See code
+execute: 
+  warning: false
+    
+---
+
+```{python}
+import pandas as pd 
+import numpy as np
+import sqlite3
+from lets_plot import *
+
+LetsPlot.setup_html(isolated_frame=True)
+```
+
+
+```{p ython}
+# Learn morea about Code Cells: https://quarto.org/docs/reference/cells/cells-jupyter.html
+
+# Include and execute your code here
+df = pd.read_json("https://github.com/byuidatascience/data4missing/raw/master/data-raw/flights_missing/flights_missing.json")
+```
+
+## QUESTION 1
+
+1. __Which airport has the worst delays?__ Describe the metric you chose, and why you chose it to determine the “worst” airport. Your answer should include a summary table that lists (for each airport) the total number of flights, total number of delayed flights, proportion of delayed flights, and average delay time in hours. 
+
+_Describe your results and analysis here_
+
+```{python}
+# Include and execute your code here
+summary = df.groupby("airport_code").agg(
+    total_flights=("num_of_flights_total", "sum"),
+    total_delays=("num_of_delays_total", "sum"),
+    total_delay_minutes=("minutes_delayed_total", "sum")
+).reset_index()
+
+# Calculate proportion of delayed flights and average delay in hours
+summary["proportion_delayed"] = summary["total_delays"] / summary["total_flights"]
+summary["avg_delay_hours"] = summary["total_delay_minutes"] / 60 / summary["total_flights"]
+
+# Sort to find the worst airport by proportion of delays and average delay time
+summary_sorted = summary.sort_values(by=["proportion_delayed", "avg_delay_hours"], ascending=False)
+
+summary_sorted.head(10)  # top 10
+
+
+
+```
+
+## QUESTION 2
+
+According to the BTS website, the “Weather” category only accounts for severe weather delays. Mild weather delays are not counted in the “Weather” category, but are actually included in both the “NAS” and “Late-Arriving Aircraft” categories. __Your job is to create a new column that calculates the total number of flights delayed by weather (both severe and mild).__ You will need to replace all the missing values in the Late Aircraft variable with the mean. Show your work by printing the first 5 rows of data in a table. Use these three rules for your calculations:  
+
+    a. 100% of delayed flights in the Weather category are due to weather  
+    a. 30% of all delayed flights in the Late-Arriving category are due to weather  
+    a. From April to August, 40% of delayed flights in the NAS category are due to weather. The rest of the months, the proportion rises to 65%  
+
+_Describe your results and analysis here_
+
+```{python}
+df_weather = df.copy()
+
+# 100% of delayed flights in the Weather category are due to weather 
+df_weather["weather_delays_from_weather"] = df_weather["num_of_delays_weather"]
+
+# 30% of all delayed flights in the Late-Arriving category are due to weather  
+df_weather["weather_delays_from_late_aircraft"] = 0.30 * df_weather["num_of_delays_late_aircraft"]
+
+# From April to August, 40% of delayed flights in the NAS category are due to weather. The rest of the months, the proportion rises to 65%  
+months_apr_to_aug = ["April", "May", "June", "July", "August"]
+
+# Apply conditional logic for NAS-based weather delay estimate
+df_weather["weather_delays_from_nas"] = df_weather.apply(
+    lambda row: 0.40 * row["num_of_delays_nas"] if row["month"] in months_apr_to_aug else 0.65 * row["num_of_delays_nas"],
+    axis=1
+)
+
+# Sum up total estimated weather delays
+df_weather["estimated_total_weather_delays"] = (
+    df_weather["weather_delays_from_weather"] +
+    df_weather["weather_delays_from_late_aircraft"] +
+    df_weather["weather_delays_from_nas"]
+)
+
+# Show the first 5 rows with relevant columns
+df_weather[[
+    "airport_code", "month", "num_of_delays_weather", 
+    "num_of_delays_late_aircraft", "num_of_delays_nas", 
+    "estimated_total_weather_delays"
+]].head()
+
+
+
+```
+
+## Question 3
+
+__Using the new weather variable calculated above, create a barplot showing the proportion of all flights that are delayed by weather at each airport. Describe what you learn from this graph.__  
+
+_Describe your results and analysis here_
+
+```{python}
+
+print("I could not get it to work, so i am going to get help in class")
+# p = ggplot(df_weather, aes(x='airport_code', y='proportion_weather_delays')) + \
+#     geom_col(fill='#4C72B0') + \
+#     coord_flip() + \
+#     labs(
+#         title="Proportion of Flights Delayed by Weather at Each Airport",
+#         x="Airport Code",
+#         y="Proportion of Flights Delayed by Weather"
+#     ) + \
+#     theme(axis_text_x=element_text(rotation=45, hjust=1))
+
+# p
+```
